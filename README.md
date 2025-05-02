@@ -54,6 +54,8 @@ Add the following configuration to your MCP settings file:
 }
 ```
 
+### Usage with command line
+
 By default, the server listens on `127.0.0.1:8000`. You can change the host and port using command-line options:
 
 ```bash
@@ -185,6 +187,8 @@ MCPの設定ファイルに以下の設定を追加します：
   }
 }
 ```
+
+### コマンドラインでの使用
 
 デフォルトでは、サーバーは `127.0.0.1:8000` でリッスンします。コマンドラインオプションを使用してホストとポートを変更できます：
 
