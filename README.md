@@ -17,6 +17,8 @@ toio-mcp is a Model Context Protocol (MCP) server for toio Core Cube. It provide
 - [toio.py](https://github.com/toio/toio.py)
 - MCP SDK 1.6.0 or higher
 
+Install toio.py according to the toio.py Setup Guide.
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/toio-mcp.git
@@ -146,6 +148,8 @@ toio-mcp は、toio Core Cube 用の Model Context Protocol (MCP) サーバー�
 - Python 3.10以上
 - [toio.py](https://github.com/toio/toio.py)
 - MCP SDK 1.6.0以上
+
+toio.pyのセットアップガイドに従ってtoio.pyをインストールしてください。
 
 ```bash
 # リポジトリをクローン
