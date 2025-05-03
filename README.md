@@ -21,7 +21,7 @@ Install toio.py according to the toio.py Setup Guide.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/toio-mcp.git
+git clone https://github.com/comoc/toio-mcp.git
 cd toio-mcp
 
 # Install dependencies
@@ -147,7 +147,7 @@ toio.pyのセットアップガイドに従ってtoio.pyをインストールし
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/yourusername/toio-mcp.git
+git clone https://github.com/comoc/toio-mcp.git
 cd toio-mcp
 
 # 依存関係をインストール
