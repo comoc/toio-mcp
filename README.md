@@ -78,48 +78,6 @@ Add the following configuration to your MCP settings file:
 
 - `get_position`: Get the position of a toio Core Cube
 
-## Examples
-
-### Scanning for cubes
-
-```python
-from mcp.client import ClientSession
-
-async def main():
-    async with ClientSession("http://localhost:8000") as client:
-        # Scan for cubes
-        result = await client.call_tool("scan_cubes", {"num": 1})
-        print(f"Found cubes: {result}")
-        
-        # Connect to the first cube
-        if result["devices"]:
-            device_id = result["devices"][0]["device_id"]
-            result = await client.call_tool("connect_cube", {"device_id": device_id})
-            cube_id = result["cube_id"]
-            print(f"Connected to cube: {cube_id}")
-            
-            # Control the motors
-            await client.call_tool("motor_control", {"cube_id": cube_id, "left": 50, "right": 50})
-            await asyncio.sleep(2)
-            await client.call_tool("motor_stop", {"cube_id": cube_id})
-            
-            # Set the LED color
-            await client.call_tool("set_indicator", {"cube_id": cube_id, "r": 255, "g": 0, "b": 0})
-            await asyncio.sleep(1)
-            
-            # Get the position
-            result = await client.call_tool("get_position", {"cube_id": cube_id})
-            print(f"Position: {result}")
-            
-            # Disconnect from the cube
-            await client.call_tool("disconnect_cube", {"cube_id": cube_id})
-            print(f"Disconnected from cube: {cube_id}")
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
-```
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -205,48 +163,6 @@ MCPの設定ファイルに以下の設定を追加します：
 #### 位置情報ツール
 
 - `get_position`: toio Core Cubeの位置情報を取得
-
-## 使用例
-
-### Cubeのスキャンと接続
-
-```python
-from mcp.client import ClientSession
-
-async def main():
-    async with ClientSession("http://localhost:8000") as client:
-        # Cubeをスキャン
-        result = await client.call_tool("scan_cubes", {"num": 1})
-        print(f"Found cubes: {result}")
-        
-        # 最初のCubeに接続
-        if result["devices"]:
-            device_id = result["devices"][0]["device_id"]
-            result = await client.call_tool("connect_cube", {"device_id": device_id})
-            cube_id = result["cube_id"]
-            print(f"Connected to cube: {cube_id}")
-            
-            # モーターを制御
-            await client.call_tool("motor_control", {"cube_id": cube_id, "left": 50, "right": 50})
-            await asyncio.sleep(2)
-            await client.call_tool("motor_stop", {"cube_id": cube_id})
-            
-            # LEDの色を設定
-            await client.call_tool("set_indicator", {"cube_id": cube_id, "r": 255, "g": 0, "b": 0})
-            await asyncio.sleep(1)
-            
-            # 位置情報を取得
-            result = await client.call_tool("get_position", {"cube_id": cube_id})
-            print(f"Position: {result}")
-            
-            # Cubeから切断
-            await client.call_tool("disconnect_cube", {"cube_id": cube_id})
-            print(f"Disconnected from cube: {cube_id}")
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
-```
 
 ## ライセンス
 
