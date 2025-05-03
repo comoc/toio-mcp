@@ -26,7 +26,10 @@ Install uv according to the uv Getting started.
 git clone https://github.com/comoc/toio-mcp.git
 cd toio-mcp
 
-# Install dependencies
+# Install dependencies (Normal mode)
+pip install .
+
+# Install dependencies (Development mode. Not required)
 pip install -e .
 ```
 
@@ -112,7 +115,10 @@ uvのGetting startedに従ってuvインストールしてください。
 git clone https://github.com/comoc/toio-mcp.git
 cd toio-mcp
 
-# 依存関係をインストール
+# 依存関係をインストール(通常モード)
+pip install .
+
+# 依存関係をインストール(開発モード. 必須ではない)
 pip install -e .
 ```
 
