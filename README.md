@@ -107,8 +107,8 @@ toio-mcp は、toio Core Cube 用の Model Context Protocol (MCP) サーバー�
 - [uv](https://docs.astral.sh/uv/)
 - MCP SDK 1.6.0以上
 
-toio.pyのセットアップガイドに従ってtoio.pyをインストールしてください。
-uvのGetting startedに従ってuvインストールしてください。
+toio.pyのセットアップガイドに従ってtoio.pyをインストールしてください.
+uvのGetting startedに従ってuvインストールしてください.
 
 ```bash
 # リポジトリをクローン
