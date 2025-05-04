@@ -35,7 +35,7 @@ pip install -e .
 
 ## Usage
 
-### Usage with Claude Desktop or Cline
+### Usage with Cline or Roo Code
 
 Add the following configuration to your MCP settings file:
 
@@ -124,7 +124,7 @@ pip install -e .
 
 ## 使用方法
 
-### Claude DesktopやClineでの使用
+### ClineやRoo Codeでの使用
 
 MCPの設定ファイルに以下の設定を追加します：
 
