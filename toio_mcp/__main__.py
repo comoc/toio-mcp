@@ -29,7 +29,7 @@ def main(
     host: str = typer.Option("127.0.0.1", help="Host to bind the server to"),
     port: int = typer.Option(8000, help="Port to bind the server to"),
     log_level: str = typer.Option(
-        "INFO", help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
+        "ERROR", help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
     ),
 ):
     """

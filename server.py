@@ -36,7 +36,7 @@ def main(
     Start the toio-mcp server
     """
     if debug:
-        logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.ERROR)
         logger.debug("Debug logging enabled")
 
     logger.info(f"Starting toio-mcp server on {host}:{port}")
