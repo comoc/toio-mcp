@@ -16,7 +16,7 @@ from toio_mcp.server import ToioMCPServer
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format="%(message)s",
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True)],

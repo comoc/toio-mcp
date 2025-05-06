@@ -16,7 +16,7 @@ app = typer.Typer()
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format="%(message)s",
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True)],
@@ -38,8 +38,8 @@ def main(
     # Set log level
     level = getattr(logging, log_level.upper(), None)
     if not isinstance(level, int):
-        logger.warning(f"Invalid log level: {log_level}, using INFO")
-        level = logging.INFO
+        logger.warning(f"Invalid log level: {log_level}, using ERROR")
+        level = logging.ERROR
     logger.setLevel(level)
 
     # Start the server
