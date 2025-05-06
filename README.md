@@ -18,18 +18,30 @@ toio-mcp is a Model Context Protocol (MCP) server for toio Core Cube. It provide
 - [uv](https://docs.astral.sh/uv/)
 - MCP SDK 1.6.0 or higher
 
-Install toio.py according to the toio.py Setup Guide.  
-Install uv according to the uv Getting started.
+### Step 1. Install `uv`
+Follow the `Getting started` guide for `uv` to install it.
 
+### Step 2. Clone the toio-mcp repository
 ```bash
-# Clone the repository
 git clone https://github.com/comoc/toio-mcp.git
+```
+
+### Step 3-A. Install dependencies using `uv`
+```bash
+cd toio-mcp
+uv sync
+```
+
+### Step 3-B. Alternatively, install dependencies using `pip`  
+First, follow the setup guide for `toio.py` to install it.  
+Then, use `pip` to install the dependencies.
+```bash
 cd toio-mcp
 
-# Install dependencies (Normal mode)
+# Install in normal mode
 pip install .
 
-# Install dependencies (Development mode. Not required)
+# Or, install in development mode
 pip install -e .
 ```
 
@@ -107,18 +119,30 @@ toio-mcp は、toio Core Cube 用の Model Context Protocol (MCP) サーバー�
 - [uv](https://docs.astral.sh/uv/)
 - MCP SDK 1.6.0以上
 
-toio.pyのセットアップガイドに従ってtoio.pyをインストールしてください。  
-uvのGetting startedに従ってuvインストールしてください。
+### ステップ1. uvのインストール
+`uv`のGetting startedに従って`uv`インストールしてください。
 
+### ステップ2. toio-mcpレポジトリのクローン
 ```bash
-# リポジトリをクローン
 git clone https://github.com/comoc/toio-mcp.git
+```
+
+### ステップ3-A. uvを使った依存関係のインストール
+```bash
+cd toio-mcp
+uv sync
+```
+
+### ステップ3-B. あるいは、pipを使った依存関係のインストール  
+まず、toio.pyのセットアップガイドに従ってtoio.pyをインストールしてください。  
+次に、`pip`を使って、依存関係をインストールしてください。
+```bash
 cd toio-mcp
 
-# 依存関係をインストール(通常モード)
+# 通常モードでのインストール
 pip install .
 
-# 依存関係をインストール(開発モード. 必須ではない)
+# または、開発モードでのインストール
 pip install -e .
 ```
 
