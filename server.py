@@ -16,7 +16,7 @@ from toio_mcp.server import ToioMCPServer
 
 # Configure logging
 logging.basicConfig(
-    level=logging.ERROR,
+    level=logging.CRITICAL,
     format="%(message)s",
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True)],
@@ -36,7 +36,7 @@ def main(
     Start the toio-mcp server
     """
     if debug:
-        logging.getLogger().setLevel(logging.ERROR)
+        logging.getLogger().setLevel(logging.CRITICAL)
         logger.debug("Debug logging enabled")
 
     logger.info(f"Starting toio-mcp server on {host}:{port}")

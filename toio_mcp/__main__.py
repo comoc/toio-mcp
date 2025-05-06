@@ -16,7 +16,7 @@ app = typer.Typer()
 
 # Configure logging
 logging.basicConfig(
-    level=logging.ERROR,
+    level=logging.CRITICAL,
     format="%(message)s",
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True)],
@@ -29,7 +29,7 @@ def main(
     host: str = typer.Option("127.0.0.1", help="Host to bind the server to"),
     port: int = typer.Option(8000, help="Port to bind the server to"),
     log_level: str = typer.Option(
-        "ERROR", help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
+        "CRITICAL", help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
     ),
 ):
     """
@@ -38,8 +38,8 @@ def main(
     # Set log level
     level = getattr(logging, log_level.upper(), None)
     if not isinstance(level, int):
-        logger.warning(f"Invalid log level: {log_level}, using ERROR")
-        level = logging.ERROR
+        logger.warning(f"Invalid log level: {log_level}, using CRITICAL")
+        level = logging.CRITICAL
     logger.setLevel(level)
 
     # Start the server
