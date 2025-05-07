@@ -35,11 +35,10 @@ dev = [
     "pytest-asyncio",
 ]
 
-[project.scripts]
-toio-mcp = "toio_mcp.__main__:main"
+# パッケージとしての実行機能は削除
 
 [tool.setuptools]
-packages = ["toio_mcp", "toio_mcp.tools"]
+# パッケージ構造を簡略化
 
 [tool.black]
 line-length = 88
