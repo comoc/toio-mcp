@@ -16,7 +16,7 @@ toio-mcp is a Model Context Protocol (MCP) server for toio Core Cube. It provide
 - Python 3.11 or higher
 - [toio.py](https://github.com/toio/toio.py)
 - [uv](https://docs.astral.sh/uv/)
-- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) 1.6.0 or higher
+- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) 1.7.1 or higher
 
 ### Step 1. Install `uv`
 Follow the `Getting started` guide for `uv` to install it.
@@ -104,7 +104,7 @@ toio-mcp は、toio Core Cube 用の Model Context Protocol (MCP) サーバー�
 - Python 3.11以上
 - [toio.py](https://github.com/toio/toio.py)
 - [uv](https://docs.astral.sh/uv/)
-- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) 1.6.0以上
+- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) 1.7.1以上
 
 ### ステップ1. uvのインストール
 `uv`のGetting startedに従って`uv`インストールしてください。

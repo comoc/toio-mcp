@@ -19,7 +19,8 @@ logging.basicConfig(
     level=logging.CRITICAL,
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True)],
+    # handlers=[RichHandler(rich_tracebacks=True)],
+    handlers=[logging.StreamHandler(sys.stderr)]
 )
 logger = logging.getLogger("toio_mcp")
 
