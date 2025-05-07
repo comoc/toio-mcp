@@ -6,8 +6,12 @@ toio-mcp is a Model Context Protocol (MCP) server for toio Core Cube. It provide
 
 - Scan and connect to toio Core Cubes
 - Control motors
-- Control LED indicators
+- Control LED indicators (including repeated patterns and turning off)
 - Get position information
+- Play sounds (sound effects and MIDI notes)
+- Get button state
+- Get battery level
+- Get sensor information (motion detection, posture angle, magnetic sensor)
 
 ## Installation
 
@@ -75,10 +79,32 @@ Add the following configuration to your MCP settings file:
 #### LED tools
 
 - `set_indicator`: Set the LED color of a toio Core Cube
+- `set_repeated_indicator`: Set repeated LED indicator patterns
+- `turn_off_indicator`: Turn off LED indicators
 
 #### Position tools
 
 - `get_position`: Get the position of a toio Core Cube
+
+#### Sound tools
+
+- `play_sound_effect`: Play a sound effect
+- `play_midi`: Play a MIDI note
+- `stop_sound`: Stop sound playback
+
+#### Button tools
+
+- `get_button_state`: Get the button state
+
+#### Battery tools
+
+- `get_battery_level`: Get the battery level
+
+#### Sensor tools
+
+- `get_motion_detection`: Get motion detection information
+- `get_posture_angle`: Get posture angle information
+- `get_magnetic_sensor`: Get magnetic sensor information
 
 ## License
 
@@ -94,8 +120,12 @@ toio-mcp は、toio Core Cube 用の Model Context Protocol (MCP) サーバー�
 
 - toio Core Cubeのスキャンと接続
 - モーター制御
-- LED制御
+- LED制御（繰り返しパターンや消灯を含む）
 - 位置情報の取得
+- サウンド再生（効果音やMIDI音）
+- ボタン状態の取得
+- バッテリー残量の取得
+- センサー情報の取得（モーション検出、姿勢角度、磁気センサー）
 
 ## インストール
 
@@ -163,10 +193,32 @@ MCPの設定ファイルに以下の設定を追加します：
 #### LEDツール
 
 - `set_indicator`: toio Core CubeのLEDの色を設定
+- `set_repeated_indicator`: 繰り返しLEDインジケーターパターンを設定
+- `turn_off_indicator`: LEDインジケーターを消灯
 
 #### 位置情報ツール
 
 - `get_position`: toio Core Cubeの位置情報を取得
+
+#### サウンドツール
+
+- `play_sound_effect`: 効果音を再生
+- `play_midi`: MIDI音を再生
+- `stop_sound`: サウンド再生を停止
+
+#### ボタンツール
+
+- `get_button_state`: ボタンの状態を取得
+
+#### バッテリーツール
+
+- `get_battery_level`: バッテリー残量を取得
+
+#### センサーツール
+
+- `get_motion_detection`: モーション検出情報を取得
+- `get_posture_angle`: 姿勢角度情報を取得
+- `get_magnetic_sensor`: 磁気センサー情報を取得
 
 ## ライセンス
 
