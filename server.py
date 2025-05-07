@@ -7,7 +7,7 @@ toio-mcp server - MCP server for toio Core Cube
 import asyncio
 import logging
 import sys
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union, Sequence
 
 import typer
 from rich.logging import RichHandler
@@ -15,6 +15,10 @@ from mcp.server.fastmcp import FastMCP
 from toio.cube import ToioCoreCube
 from toio.scanner import BLEScanner
 from toio.cube.api.id_information import PositionId, StandardId, PositionIdMissed, StandardIdMissed
+from toio.cube.api.sound import SoundId, Note, MidiNote
+from toio.cube.api.button import ButtonState
+from toio.cube.api.indicator import Color, IndicatorParam
+from toio.cube.api.sensor import PostureDataType, Posture
 
 # Configure logging
 logging.basicConfig(
@@ -252,17 +256,17 @@ async def _get_connected_cubes(cube_manager: CubeManager):
     except Exception as e:
         return {"error": str(e)}
 
-async def _motor_control(cube_manager: CubeManager, cube_id: str, left: int, right: int, duration: int = 0):
+async def _motor_control(cube_manager: CubeManager, cube_id: str, left: int, right: int, duration_ms: int = 0):
     """
     Control the motors of a toio Core Cube
-
+    
     Args:
         cube_manager: CubeManager instance
         cube_id: Cube ID to control
         left: Left motor speed (-100 to 100)
         right: Right motor speed (-100 to 100)
-        duration: Duration in milliseconds (0 for continuous)
-
+        duration_ms: Duration in milliseconds (0 for continuous)
+    
     Returns:
         Dict with success status
     """
@@ -271,7 +275,7 @@ async def _motor_control(cube_manager: CubeManager, cube_id: str, left: int, rig
         if cube is None:
             return {"error": f"Cube with ID {cube_id} not found"}
 
-        await cube.api.motor.motor_control(left, right, duration)
+        await cube.api.motor.motor_control(left, right, duration_ms)
         return {"controlled": True}
     except Exception as e:
         return {"error": str(e)}
@@ -297,18 +301,18 @@ async def _motor_stop(cube_manager: CubeManager, cube_id: str):
     except Exception as e:
         return {"error": str(e)}
 
-async def _set_indicator(cube_manager: CubeManager, cube_id: str, r: int, g: int, b: int, duration: int = 0):
+async def _set_indicator(cube_manager: CubeManager, cube_id: str, r: int, g: int, b: int, duration_ms: int = 0):
     """
     Set the LED color of a toio Core Cube
-
+    
     Args:
         cube_manager: CubeManager instance
         cube_id: Cube ID to control
         r: Red component (0-255)
         g: Green component (0-255)
         b: Blue component (0-255)
-        duration: Duration in milliseconds (0 for continuous)
-
+        duration_ms: Duration in milliseconds (0 for continuous)
+    
     Returns:
         Dict with success status
     """
@@ -319,7 +323,7 @@ async def _set_indicator(cube_manager: CubeManager, cube_id: str, r: int, g: int
 
         from toio.cube.api.indicator import Color, IndicatorParam
         color = Color(r, g, b)
-        param = IndicatorParam(duration_ms=duration, color=color)
+        param = IndicatorParam(duration_ms=duration_ms, color=color)
         await cube.api.indicator.turn_on(param)
         return {"set": True}
     except Exception as e:
@@ -376,6 +380,332 @@ async def _get_position(cube_manager: CubeManager, cube_id: str):
     except Exception as e:
         return {"error": str(e)}
 
+async def _play_sound_effect(cube_manager: CubeManager, cube_id: str, sound_id: int, volume: int = 255):
+    """
+    Play a sound effect on a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to play sound on
+        sound_id: Sound effect ID (0-10)
+        volume: Volume (0-255)
+        
+    Returns:
+        Dict with success status
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+            
+        await cube.api.sound.play_sound_effect(sound_id, volume)
+        return {"played": True}
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _play_midi(cube_manager: CubeManager, cube_id: str, note: int, duration_ms: int = 1000, volume: int = 255, repeat: int = 0):
+    """
+    Play a MIDI note on a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to play sound on
+        note: MIDI note number (0-127)
+        duration_ms: Duration in milliseconds (10-2550)
+        volume: Volume (0-255)
+        repeat: Number of repetitions (0: Infinite)
+        
+    Returns:
+        Dict with success status
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+        
+        # MidiNoteオブジェクトを作成
+        midi_note = MidiNote(duration_ms=duration_ms, note=note, volume=volume)
+        # MidiNoteオブジェクトのリストを作成
+        midi_notes = [midi_note]
+        
+        # play_midiメソッドを呼び出す
+        # await cube.api.sound.play_midi(repeat, midi_notes)
+        _ = asyncio.create_task(cube.api.sound.play_midi(repeat, midi_notes)) # 非同期で実行
+        return {"played": True}
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _stop_sound(cube_manager: CubeManager, cube_id: str):
+    """
+    Stop sound on a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to stop sound on
+        
+    Returns:
+        Dict with success status
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+            
+        await cube.api.sound.stop()
+        return {"stopped": True}
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _get_button_state(cube_manager: CubeManager, cube_id: str):
+    """
+    Get the button state of a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to get button state from
+        
+    Returns:
+        Dict with button state information
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+            
+        button_info = await cube.api.button.read()
+        if button_info is None:
+            return {"error": "Failed to get button information"}
+            
+        return {
+            "state": "pressed" if button_info.state == ButtonState.PRESSED else "released"
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _get_battery_level(cube_manager: CubeManager, cube_id: str):
+    """
+    Get the battery level of a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to get battery level from
+        
+    Returns:
+        Dict with battery level information
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+            
+        battery_info = await cube.api.battery.read()
+        if battery_info is None:
+            return {"error": "Failed to get battery information"}
+            
+        return {
+            "level": battery_info.battery_level
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _get_motion_detection(cube_manager: CubeManager, cube_id: str):
+    """
+    Get motion detection information from a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to get motion detection from
+        
+    Returns:
+        Dict with motion detection information
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+            
+        # モーション情報をリクエスト
+        await cube.api.sensor.request_motion_information()
+        # 結果を待機する必要があるため、少し待つ
+        await asyncio.sleep(0.1)
+        
+        # 最新のモーション検出情報を取得
+        motion_data = await cube.api.sensor.read()
+        if motion_data is None:
+            return {"error": "Failed to get motion detection information"}
+            
+        # モーション検出情報を返す
+        result = {
+            "type": "motion_detection"
+        }
+        
+        # 利用可能な属性を追加
+        for attr in ["horizontal", "collision", "double_tap", "posture", "shake"]:
+            if hasattr(motion_data, attr):
+                if attr == "posture" and hasattr(motion_data.posture, "name"):
+                    result[attr] = motion_data.posture.name
+                else:
+                    result[attr] = getattr(motion_data, attr)
+            
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _get_posture_angle(cube_manager: CubeManager, cube_id: str, data_type: int = 1):
+    """
+    Get posture angle information from a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to get posture angle from
+        data_type: Posture data type (1: Euler, 2: Quaternions, 3: HighPrecisionEuler)
+        
+    Returns:
+        Dict with posture angle information
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+            
+        # データタイプを設定
+        posture_data_type = PostureDataType.Euler
+        if data_type == 2:
+            posture_data_type = PostureDataType.Quaternions
+        elif data_type == 3:
+            posture_data_type = PostureDataType.HighPrecisionEuler
+            
+        # 姿勢角度情報をリクエスト
+        await cube.api.sensor.request_posture_angle_information(posture_data_type)
+        # 結果を待機する必要があるため、少し待つ
+        await asyncio.sleep(0.1)
+        
+        # 最新の姿勢角度情報を取得
+        posture_data = await cube.api.sensor.read()
+        if posture_data is None:
+            return {"error": "Failed to get posture angle information"}
+            
+        # 姿勢角度情報を返す
+        result = {
+            "type": "posture_angle"
+        }
+        
+        # 利用可能な属性を追加
+        euler_attrs = ["roll", "pitch", "yaw"]
+        quaternion_attrs = ["w", "x", "y", "z"]
+        
+        if data_type == 1:  # Euler
+            for attr in euler_attrs:
+                if hasattr(posture_data, attr):
+                    result[attr] = getattr(posture_data, attr)
+        elif data_type == 2:  # Quaternions
+            for attr in quaternion_attrs:
+                if hasattr(posture_data, attr):
+                    result[attr] = getattr(posture_data, attr)
+        elif data_type == 3:  # HighPrecisionEuler
+            for attr in euler_attrs:
+                if hasattr(posture_data, attr):
+                    result[attr] = getattr(posture_data, attr)
+            
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _get_magnetic_sensor(cube_manager: CubeManager, cube_id: str):
+    """
+    Get magnetic sensor information from a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to get magnetic sensor information from
+        
+    Returns:
+        Dict with magnetic sensor information
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+            
+        # 磁気センサー情報をリクエスト
+        await cube.api.sensor.request_magnetic_sensor_information()
+        # 結果を待機する必要があるため、少し待つ
+        await asyncio.sleep(0.1)
+        
+        # 最新の磁気センサー情報を取得
+        magnetic_data = await cube.api.sensor.read()
+        if magnetic_data is None:
+            return {"error": "Failed to get magnetic sensor information"}
+            
+        # 磁気センサー情報を返す
+        result = {
+            "type": "magnetic_sensor"
+        }
+        
+        # 利用可能な属性を追加
+        for attr in ["state", "strength", "x", "y", "z"]:
+            if hasattr(magnetic_data, attr):
+                result[attr] = getattr(magnetic_data, attr)
+            
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _set_repeated_indicator(cube_manager: CubeManager, cube_id: str, repeat: int, params: List[Dict[str, Any]]):
+    """
+    Set repeated LED indicator on a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to control
+        repeat: Number of repetitions (0 for infinite)
+        params: List of indicator parameters, each with duration_ms, r, g, b
+        
+    Returns:
+        Dict with success status
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+        
+        param_list = []
+        for p in params:
+            color = Color(p["r"], p["g"], p["b"])
+            param = IndicatorParam(duration_ms=p["duration_ms"], color=color)
+            param_list.append(param)
+            
+        # await cube.api.indicator.repeated_turn_on(repeat, param_list)
+        _ = asyncio.create_task(cube.api.indicator.repeated_turn_on(repeat, param_list)) # 非同期で実行
+        return {"set": True}
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _turn_off_indicator(cube_manager: CubeManager, cube_id: str, indicator_id: int = None):
+    """
+    Turn off LED indicator on a toio Core Cube
+    
+    Args:
+        cube_manager: CubeManager instance
+        cube_id: Cube ID to control
+        indicator_id: Indicator ID to turn off (None for all)
+        
+    Returns:
+        Dict with success status
+    """
+    try:
+        cube = cube_manager.get_cube(cube_id)
+        if cube is None:
+            return {"error": f"Cube with ID {cube_id} not found"}
+            
+        if indicator_id is None:
+            await cube.api.indicator.turn_off_all()
+        else:
+            await cube.api.indicator.turn_off(indicator_id)
+        return {"turned_off": True}
+    except Exception as e:
+        return {"error": str(e)}
+
 # Wrapper functions for tools
 def _scan_cubes_wrapper(cube_manager: CubeManager):
     async def wrapper(num: int = 1, timeout: float = 5.0) -> Dict[str, Any]:
@@ -398,8 +728,8 @@ def _get_connected_cubes_wrapper(cube_manager: CubeManager):
     return wrapper
 
 def _motor_control_wrapper(cube_manager: CubeManager):
-    async def wrapper(cube_id: str, left: int, right: int, duration: int = 0) -> Dict[str, Any]:
-        return await _motor_control(cube_manager, cube_id, left, right, duration)
+    async def wrapper(cube_id: str, left: int, right: int, duration_ms: int = 0) -> Dict[str, Any]:
+        return await _motor_control(cube_manager, cube_id, left, right, duration_ms)
     return wrapper
 
 def _motor_stop_wrapper(cube_manager: CubeManager):
@@ -408,13 +738,63 @@ def _motor_stop_wrapper(cube_manager: CubeManager):
     return wrapper
 
 def _set_indicator_wrapper(cube_manager: CubeManager):
-    async def wrapper(cube_id: str, r: int, g: int, b: int, duration: int = 0) -> Dict[str, Any]:
-        return await _set_indicator(cube_manager, cube_id, r, g, b, duration)
+    async def wrapper(cube_id: str, r: int, g: int, b: int, duration_ms: int = 0) -> Dict[str, Any]:
+        return await _set_indicator(cube_manager, cube_id, r, g, b, duration_ms)
     return wrapper
 
 def _get_position_wrapper(cube_manager: CubeManager):
     async def wrapper(cube_id: str) -> Dict[str, Any]:
         return await _get_position(cube_manager, cube_id)
+    return wrapper
+
+def _play_sound_effect_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str, sound_id: int, volume: int = 255) -> Dict[str, Any]:
+        return await _play_sound_effect(cube_manager, cube_id, sound_id, volume)
+    return wrapper
+
+def _play_midi_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str, note: int, duration_ms: int = 1000, volume: int = 255, repeat: int = 0) -> Dict[str, Any]:
+        return await _play_midi(cube_manager, cube_id, note, duration_ms, volume, repeat)
+    return wrapper
+
+def _stop_sound_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str) -> Dict[str, Any]:
+        return await _stop_sound(cube_manager, cube_id)
+    return wrapper
+
+def _get_button_state_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str) -> Dict[str, Any]:
+        return await _get_button_state(cube_manager, cube_id)
+    return wrapper
+
+def _get_battery_level_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str) -> Dict[str, Any]:
+        return await _get_battery_level(cube_manager, cube_id)
+    return wrapper
+
+def _get_motion_detection_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str) -> Dict[str, Any]:
+        return await _get_motion_detection(cube_manager, cube_id)
+    return wrapper
+
+def _get_posture_angle_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str, data_type: int = 1) -> Dict[str, Any]:
+        return await _get_posture_angle(cube_manager, cube_id, data_type)
+    return wrapper
+
+def _get_magnetic_sensor_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str) -> Dict[str, Any]:
+        return await _get_magnetic_sensor(cube_manager, cube_id)
+    return wrapper
+
+def _set_repeated_indicator_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str, repeat: int, params: List[Dict[str, Any]]) -> Dict[str, Any]:
+        return await _set_repeated_indicator(cube_manager, cube_id, repeat, params)
+    return wrapper
+
+def _turn_off_indicator_wrapper(cube_manager: CubeManager):
+    async def wrapper(cube_id: str, indicator_id: int = None) -> Dict[str, Any]:
+        return await _turn_off_indicator(cube_manager, cube_id, indicator_id)
     return wrapper
 
 
@@ -486,6 +866,71 @@ class ToioMCPServer:
             _get_position_wrapper(self.cube_manager),
             name="get_position",
             description="Get the position of a toio Core Cube"
+        )
+        
+        # サウンド関連ツール
+        self.server.add_tool(
+            _play_sound_effect_wrapper(self.cube_manager),
+            name="play_sound_effect",
+            description="Play a sound effect on a toio Core Cube"
+        )
+        
+        self.server.add_tool(
+            _play_midi_wrapper(self.cube_manager),
+            name="play_midi",
+            description="Play a MIDI note on a toio Core Cube"
+        )
+        
+        self.server.add_tool(
+            _stop_sound_wrapper(self.cube_manager),
+            name="stop_sound",
+            description="Stop sound on a toio Core Cube"
+        )
+        
+        # ボタン関連ツール
+        self.server.add_tool(
+            _get_button_state_wrapper(self.cube_manager),
+            name="get_button_state",
+            description="Get the button state of a toio Core Cube"
+        )
+        
+        # バッテリー関連ツール
+        self.server.add_tool(
+            _get_battery_level_wrapper(self.cube_manager),
+            name="get_battery_level",
+            description="Get the battery level of a toio Core Cube"
+        )
+        
+        # センサー関連ツール
+        self.server.add_tool(
+            _get_motion_detection_wrapper(self.cube_manager),
+            name="get_motion_detection",
+            description="Get motion detection information from a toio Core Cube"
+        )
+        
+        self.server.add_tool(
+            _get_posture_angle_wrapper(self.cube_manager),
+            name="get_posture_angle",
+            description="Get posture angle information from a toio Core Cube"
+        )
+        
+        self.server.add_tool(
+            _get_magnetic_sensor_wrapper(self.cube_manager),
+            name="get_magnetic_sensor",
+            description="Get magnetic sensor information from a toio Core Cube"
+        )
+        
+        # 追加のLEDインジケーター関連ツール
+        self.server.add_tool(
+            _set_repeated_indicator_wrapper(self.cube_manager),
+            name="set_repeated_indicator",
+            description="Set repeated LED indicator on a toio Core Cube"
+        )
+        
+        self.server.add_tool(
+            _turn_off_indicator_wrapper(self.cube_manager),
+            name="turn_off_indicator",
+            description="Turn off LED indicator on a toio Core Cube"
         )
 
     def start(self):
