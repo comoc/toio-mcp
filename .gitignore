@@ -43,3 +43,5 @@ htmlcov/
 
 # プロジェクト固有
 uv.lock
+
+.python-version
