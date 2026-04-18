@@ -18,7 +18,11 @@ from toio.cube.api.id_information import PositionId, StandardId, PositionIdMisse
 from toio.cube.api.sound import SoundId, Note, MidiNote
 from toio.cube.api.button import ButtonState
 from toio.cube.api.indicator import Color, IndicatorParam
-from toio.cube.api.sensor import PostureDataType, Posture
+from toio.cube.api.sensor import PostureDataType, Posture, MagneticSensorData
+from toio.cube.api.configuration import (
+    MagneticSensorFunction,
+    MagneticSensorCondition,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -626,27 +630,39 @@ async def _get_magnetic_sensor(cube_manager: CubeManager, cube_id: str):
         cube = cube_manager.get_cube(cube_id)
         if cube is None:
             return {"error": f"Cube with ID {cube_id} not found"}
-            
-        # 磁気センサー情報をリクエスト
-        await cube.api.sensor.request_magnetic_sensor_information()
-        # 結果を待機する必要があるため、少し待つ
+
+        # Magnetic sensors are disabled by default per toio spec — enable
+        # MagneticForce mode to receive state, strength and x/y/z values.
+        await cube.api.configuration.set_magnetic_sensor(
+            function_type=MagneticSensorFunction.MagneticForce,
+            interval_ms=20,
+            condition=MagneticSensorCondition.Always,
+        )
         await asyncio.sleep(0.1)
-        
-        # 最新の磁気センサー情報を取得
-        magnetic_data = await cube.api.sensor.read()
+
+        await cube.api.sensor.request_magnetic_sensor_information()
+
+        # sensor.read() returns whichever payload is currently cached on the
+        # characteristic (motion / posture / magnetic), so retry until we see
+        # magnetic data or hit the timeout.
+        magnetic_data = None
+        for _ in range(10):
+            await asyncio.sleep(0.05)
+            data = await cube.api.sensor.read()
+            if isinstance(data, MagneticSensorData):
+                magnetic_data = data
+                break
+
         if magnetic_data is None:
             return {"error": "Failed to get magnetic sensor information"}
-            
-        # 磁気センサー情報を返す
+
         result = {
             "type": "magnetic_sensor"
         }
-        
-        # 利用可能な属性を追加
         for attr in ["state", "strength", "x", "y", "z"]:
             if hasattr(magnetic_data, attr):
                 result[attr] = getattr(magnetic_data, attr)
-            
+
         return result
     except Exception as e:
         return {"error": str(e)}
