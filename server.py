@@ -18,7 +18,15 @@ from toio.cube.api.id_information import PositionId, StandardId, PositionIdMisse
 from toio.cube.api.sound import SoundId, Note, MidiNote
 from toio.cube.api.button import ButtonState
 from toio.cube.api.indicator import Color, IndicatorParam
-from toio.cube.api.sensor import PostureDataType, Posture, MagneticSensorData
+from toio.cube.api.sensor import (
+    PostureDataType,
+    Posture,
+    MagneticSensorData,
+    MotionDetectionData,
+    PostureAngleEulerData,
+    PostureAngleQuaternionsData,
+    PostureAngleHighPrecisionEulerData,
+)
 from toio.cube.api.configuration import (
     MagneticSensorFunction,
     MagneticSensorCondition,
@@ -528,29 +536,31 @@ async def _get_motion_detection(cube_manager: CubeManager, cube_id: str):
         if cube is None:
             return {"error": f"Cube with ID {cube_id} not found"}
             
-        # モーション情報をリクエスト
         await cube.api.sensor.request_motion_information()
-        # 結果を待機する必要があるため、少し待つ
-        await asyncio.sleep(0.1)
-        
-        # 最新のモーション検出情報を取得
-        motion_data = await cube.api.sensor.read()
+
+        # The Sensor characteristic is shared with posture / magnetic reads,
+        # so retry until a motion-detection payload appears.
+        motion_data = None
+        for _ in range(10):
+            await asyncio.sleep(0.05)
+            data = await cube.api.sensor.read()
+            if isinstance(data, MotionDetectionData):
+                motion_data = data
+                break
+
         if motion_data is None:
             return {"error": "Failed to get motion detection information"}
-            
-        # モーション検出情報を返す
+
         result = {
             "type": "motion_detection"
         }
-        
-        # 利用可能な属性を追加
         for attr in ["horizontal", "collision", "double_tap", "posture", "shake"]:
             if hasattr(motion_data, attr):
                 if attr == "posture" and hasattr(motion_data.posture, "name"):
                     result[attr] = motion_data.posture.name
                 else:
                     result[attr] = getattr(motion_data, attr)
-            
+
         return result
     except Exception as e:
         return {"error": str(e)}
@@ -572,45 +582,39 @@ async def _get_posture_angle(cube_manager: CubeManager, cube_id: str, data_type:
         if cube is None:
             return {"error": f"Cube with ID {cube_id} not found"}
             
-        # データタイプを設定
-        posture_data_type = PostureDataType.Euler
         if data_type == 2:
             posture_data_type = PostureDataType.Quaternions
+            expected_type = PostureAngleQuaternionsData
         elif data_type == 3:
             posture_data_type = PostureDataType.HighPrecisionEuler
-            
-        # 姿勢角度情報をリクエスト
+            expected_type = PostureAngleHighPrecisionEulerData
+        else:
+            posture_data_type = PostureDataType.Euler
+            expected_type = PostureAngleEulerData
+
         await cube.api.sensor.request_posture_angle_information(posture_data_type)
-        # 結果を待機する必要があるため、少し待つ
-        await asyncio.sleep(0.1)
-        
-        # 最新の姿勢角度情報を取得
-        posture_data = await cube.api.sensor.read()
+
+        # Filter by expected payload type — the Sensor characteristic is
+        # shared with motion / magnetic reads.
+        posture_data = None
+        for _ in range(10):
+            await asyncio.sleep(0.05)
+            data = await cube.api.sensor.read()
+            if isinstance(data, expected_type):
+                posture_data = data
+                break
+
         if posture_data is None:
             return {"error": "Failed to get posture angle information"}
-            
-        # 姿勢角度情報を返す
+
         result = {
             "type": "posture_angle"
         }
-        
-        # 利用可能な属性を追加
-        euler_attrs = ["roll", "pitch", "yaw"]
-        quaternion_attrs = ["w", "x", "y", "z"]
-        
-        if data_type == 1:  # Euler
-            for attr in euler_attrs:
-                if hasattr(posture_data, attr):
-                    result[attr] = getattr(posture_data, attr)
-        elif data_type == 2:  # Quaternions
-            for attr in quaternion_attrs:
-                if hasattr(posture_data, attr):
-                    result[attr] = getattr(posture_data, attr)
-        elif data_type == 3:  # HighPrecisionEuler
-            for attr in euler_attrs:
-                if hasattr(posture_data, attr):
-                    result[attr] = getattr(posture_data, attr)
-            
+        attrs = ["w", "x", "y", "z"] if data_type == 2 else ["roll", "pitch", "yaw"]
+        for attr in attrs:
+            if hasattr(posture_data, attr):
+                result[attr] = getattr(posture_data, attr)
+
         return result
     except Exception as e:
         return {"error": str(e)}
@@ -626,11 +630,12 @@ async def _get_magnetic_sensor(cube_manager: CubeManager, cube_id: str):
     Returns:
         Dict with magnetic sensor information
     """
-    try:
-        cube = cube_manager.get_cube(cube_id)
-        if cube is None:
-            return {"error": f"Cube with ID {cube_id} not found"}
+    cube = cube_manager.get_cube(cube_id)
+    if cube is None:
+        return {"error": f"Cube with ID {cube_id} not found"}
 
+    enabled = False
+    try:
         # Magnetic sensors are disabled by default per toio spec — enable
         # MagneticForce mode to receive state, strength and x/y/z values.
         await cube.api.configuration.set_magnetic_sensor(
@@ -638,13 +643,11 @@ async def _get_magnetic_sensor(cube_manager: CubeManager, cube_id: str):
             interval_ms=20,
             condition=MagneticSensorCondition.Always,
         )
+        enabled = True
         await asyncio.sleep(0.1)
 
         await cube.api.sensor.request_magnetic_sensor_information()
 
-        # sensor.read() returns whichever payload is currently cached on the
-        # characteristic (motion / posture / magnetic), so retry until we see
-        # magnetic data or hit the timeout.
         magnetic_data = None
         for _ in range(10):
             await asyncio.sleep(0.05)
@@ -666,6 +669,18 @@ async def _get_magnetic_sensor(cube_manager: CubeManager, cube_id: str):
         return result
     except Exception as e:
         return {"error": str(e)}
+    finally:
+        # Treat this tool as one-shot — stop the 20ms magnetic stream so it
+        # does not drain power or pollute later motion / posture reads.
+        if enabled:
+            try:
+                await cube.api.configuration.set_magnetic_sensor(
+                    function_type=MagneticSensorFunction.Disable,
+                    interval_ms=0,
+                    condition=MagneticSensorCondition.Always,
+                )
+            except Exception:
+                logger.exception("Failed to disable magnetic sensor after read")
 
 async def _set_repeated_indicator(cube_manager: CubeManager, cube_id: str, repeat: int, params: List[Dict[str, Any]]):
     """
