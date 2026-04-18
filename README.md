@@ -62,6 +62,43 @@ Add the following configuration to your MCP settings file:
 }
 ```
 
+### Usage with Claude Desktop
+
+Open Claude Desktop's `claude_desktop_config.json` (Settings → Developer → Edit Config) and add:
+
+```json
+{
+  "mcpServers": {
+    "toio-mcp": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "<path to toio-mcp directory>",
+        "run",
+        "server.py"
+      ]
+    }
+  }
+}
+```
+
+The config file lives at:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Restart Claude Desktop after editing. The toio-mcp tools should appear in the tool picker.
+
+### Usage with Claude Code
+
+Register the server with the `claude mcp add` CLI:
+
+```bash
+claude mcp add toio-mcp -- uv --directory <path to toio-mcp directory> run server.py
+```
+
+Use `--scope user` to make it available across all projects, or omit the flag to keep it project-local. Verify with `claude mcp list` and start using the tools from any Claude Code session.
+
 ### Available tools
 
 #### Scanner tools
@@ -175,6 +212,43 @@ MCPの設定ファイルに以下の設定を追加します：
   }
 }
 ```
+
+### Claude Desktopでの使用
+
+Claude Desktop の設定 → 開発者 → 設定を編集 から `claude_desktop_config.json` を開き、以下を追加します:
+
+```json
+{
+  "mcpServers": {
+    "toio-mcp": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "<toio-mcpディレクトリへのパス>",
+        "run",
+        "server.py"
+      ]
+    }
+  }
+}
+```
+
+設定ファイルの場所:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+編集後にClaude Desktopを再起動すると、ツール一覧に toio-mcp のツールが表示されます。
+
+### Claude Codeでの使用
+
+`claude mcp add` コマンドでサーバーを登録します:
+
+```bash
+claude mcp add toio-mcp -- uv --directory <toio-mcpディレクトリへのパス> run server.py
+```
+
+全プロジェクトで使いたい場合は `--scope user` を付け、現在のプロジェクトだけで使う場合はフラグなしで実行します。`claude mcp list` で登録確認後、Claude Code セッションからツールを呼び出せます。
 
 ### 利用可能なツール
 
